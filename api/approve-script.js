@@ -16,12 +16,16 @@ export default async function handler(req, res) {
 
     const airtableApiKey = process.env.AIRTABLE_API_KEY;
     const airtableBaseId = process.env.AIRTABLE_BASE_ID;
-    const airtableTableName =
-      process.env.AIRTABLE_TABLE_NAME || "Approved Scripts";
+    const airtableTableName = process.env.AIRTABLE_TABLE_NAME;
 
-    if (!airtableApiKey || !airtableBaseId) {
+    if (!airtableApiKey || !airtableBaseId || !airtableTableName) {
       return res.status(500).json({
         error: "Missing Airtable environment variables.",
+        debug: {
+          hasApiKey: Boolean(airtableApiKey),
+          baseId: airtableBaseId || null,
+          tableName: airtableTableName || null,
+        },
       });
     }
 
@@ -36,6 +40,12 @@ export default async function handler(req, res) {
       airtableBaseId +
       "/" +
       encodeURIComponent(airtableTableName);
+
+    console.log("Sending to Airtable:", {
+      baseId: airtableBaseId,
+      tableName: airtableTableName,
+      fields,
+    });
 
     const airtableResponse = await fetch(airtableUrl, {
       method: "POST",
@@ -54,16 +64,28 @@ export default async function handler(req, res) {
 
     const airtableData = await airtableResponse.json();
 
+    console.log("Airtable response:", {
+      status: airtableResponse.status,
+      data: airtableData,
+    });
+
     if (!airtableResponse.ok) {
       return res.status(airtableResponse.status).json({
         error: "Airtable error",
-        details: airtableData,
+        airtableStatus: airtableResponse.status,
+        airtableDetails: airtableData,
+        debug: {
+          baseId: airtableBaseId,
+          tableName: airtableTableName,
+          sentFields: Object.keys(fields),
+        },
       });
     }
 
     return res.status(200).json({
       success: true,
       message: "Script approved and saved to Airtable.",
+      airtable: airtableData,
     });
   } catch (error) {
     return res.status(500).json({
