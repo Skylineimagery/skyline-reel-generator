@@ -1,4 +1,14 @@
 export default async function handler(req, res) {
+  // Allows Squarespace / website requests
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // Handles browser preflight check
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -9,17 +19,37 @@ export default async function handler(req, res) {
     const prompt = `
 You are writing a short real estate social media reel script for Skyline Imagery.
 
-Rules:
-- Do not say "welcome to"
-- Avoid MLS-style wording
-- Conversational, confident, natural
-- Keep each line one sentence
-- Generate:
-1. Three hook options
-2. Full 4-6 line reel script
-3. Three CTA options
+Skyline's style:
+- Natural, confident, conversational
+- Strong hooks that create curiosity
+- Never start with "welcome to"
+- Do not sound like MLS copy
+- Do not use cheesy phrases like "this one checks all the boxes"
+- Keep each line as one complete sentence
+- Make the reel feel human, not robotic
+- Prioritize what the agent says makes the home special
+- Do not mention features too early unless they are meant to be the hook
 
-Property Information:
+Generate the response in this exact format:
+
+HOOK OPTIONS:
+1.
+2.
+3.
+
+FULL SCRIPT:
+1.
+2.
+3.
+4.
+5.
+
+CTA OPTIONS:
+1.
+2.
+3.
+
+Property information:
 ${JSON.stringify(form, null, 2)}
 `;
 
@@ -54,7 +84,6 @@ ${JSON.stringify(form, null, 2)}
 
     return res.status(200).json({
       result: outputText || "No script generated.",
-      raw: data,
     });
   } catch (error) {
     return res.status(500).json({
