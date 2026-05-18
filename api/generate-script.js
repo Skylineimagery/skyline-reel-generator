@@ -4,21 +4,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const form = req.body;
+    const form = req.body || {};
 
     const prompt = `
 You are writing a short real estate social media reel script for Skyline Imagery.
 
 Rules:
-- Do not say "welcome to".
-- Do not sound like MLS copy.
-- Make it conversational, natural, and strong.
-- Keep each script line as one sentence.
-- Create 3 hook options.
-- Create a short full script.
-- Create 3 CTA options.
+- Do not say "welcome to"
+- Avoid MLS-style wording
+- Conversational, confident, natural
+- Keep each line one sentence
+- Generate:
+1. Three hook options
+2. Full 4-6 line reel script
+3. Three CTA options
 
-Property info:
+Property Information:
 ${JSON.stringify(form, null, 2)}
 `;
 
@@ -36,11 +37,27 @@ ${JSON.stringify(form, null, 2)}
 
     const data = await response.json();
 
-    res.status(200).json({
-      result: data.output_text || "No script generated.",
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: "OpenAI API error",
+        details: data,
+      });
+    }
+
+    const outputText =
+      data.output_text ||
+      data.output
+        ?.flatMap((item) => item.content || [])
+        ?.map((content) => content.text || "")
+        ?.join("\n")
+        ?.trim();
+
+    return res.status(200).json({
+      result: outputText || "No script generated.",
+      raw: data,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       error: "Script generation failed.",
       details: error.message,
     });
