@@ -29,11 +29,34 @@ export default async function handler(req, res) {
       });
     }
 
-    const fields = {
-      "Property Address": body.propertyAddress || "",
-      "Approved Script": body.approvedScript || "",
-      "Submitted At": new Date().toISOString(),
-    };
+const fields = {
+  "Property Address": body.propertyAddress || basics.propertyAddress || "",
+  "Approved Script": body.approvedScript || "",
+
+  "Music Style": creative.musicStyle || "",
+  "Reel Focus": Array.isArray(focus.mainFocusPoints)
+    ? focus.mainFocusPoints.join(", ")
+    : "",
+  "Comfort Level": creative.cameraConfidence || "",
+  "Video Length": creative.videoDuration || "",
+  "Video Start Style": creative.videoShouldStartWith || "",
+
+  "City / Neighborhood": basics.cityNeighborhood || "",
+  "Property Type": basics.propertyType || "",
+  "Beds / Baths": basics.bedsBaths || "",
+  "Square Footage": basics.sqft || "",
+
+  "Standout Feature": angle.standoutFeature || "",
+  "Why It Matters": angle.whyItMatters || "",
+
+  "Overall Feel": focus.interiorFeel || "",
+  "Target Buyer": focus.targetBuyer || "",
+
+  "CTA Preference": cta.ctaPreference || "",
+  "Extra Notes": cta.extraNotes || "",
+
+  "Submitted At": new Date().toISOString(),
+};
 
     const airtableUrl =
       "https://api.airtable.com/v0/" +
