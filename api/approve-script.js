@@ -29,34 +29,49 @@ export default async function handler(req, res) {
       });
     }
 
-const fields = {
-  "Property Address": body.propertyAddress || basics.propertyAddress || "",
-  "Approved Script": body.approvedScript || "",
+    const answers = body.formAnswers || {};
+    const creative = answers.creativeDirection || {};
+    const basics = answers.propertyBasics || {};
+    const angle = answers.mainSellingAngle || {};
+    const focus = answers.reelFocus || {};
+    const cta = answers.ctaAndNotes || {};
 
-  "Music Style": creative.musicStyle || "",
-  "Reel Focus": Array.isArray(focus.mainFocusPoints)
-    ? focus.mainFocusPoints.join(", ")
-    : "",
-  "Comfort Level": creative.cameraConfidence || "",
-  "Video Length": creative.videoDuration || "",
-  "Video Start Style": creative.videoShouldStartWith || "",
+    const fields = {
+      "Property Address": body.propertyAddress || basics.propertyAddress || "",
+      "Approved Script": body.approvedScript || "",
 
-  "City / Neighborhood": basics.cityNeighborhood || "",
-  "Property Type": basics.propertyType || "",
-  "Beds / Baths": basics.bedsBaths || "",
-  "Square Footage": basics.sqft || "",
+      "Music Style": creative.musicStyle || "",
+      "Reel Focus": Array.isArray(focus.mainFocusPoints)
+        ? focus.mainFocusPoints.join(", ")
+        : "",
+      "Comfort Level": creative.cameraConfidence
+        ? Number(creative.cameraConfidence)
+        : null,
+      "Video Length": creative.videoDuration || "",
+      "Video Start Style": creative.videoShouldStartWith || "",
 
-  "Standout Feature": angle.standoutFeature || "",
-  "Why It Matters": angle.whyItMatters || "",
+      "City / Neighborhood": basics.cityNeighborhood || "",
+      "Property Type": basics.propertyType || "",
+      "Beds / Baths": basics.bedsBaths || "",
+      "Square Footage": basics.sqft || "",
 
-  "Overall Feel": focus.interiorFeel || "",
-  "Target Buyer": focus.targetBuyer || "",
+      "Standout Feature": angle.standoutFeature || "",
+      "Why It Matters": angle.whyItMatters || "",
 
-  "CTA Preference": cta.ctaPreference || "",
-  "Extra Notes": cta.extraNotes || "",
+      "Overall Feel": focus.interiorFeel || "",
+      "Target Buyer": focus.targetBuyer || "",
 
-  "Submitted At": new Date().toISOString(),
-};
+      "CTA Preference": cta.ctaPreference || "",
+      "Extra Notes": cta.extraNotes || "",
+
+      "Submitted At": new Date().toISOString(),
+    };
+
+    Object.keys(fields).forEach((key) => {
+      if (fields[key] === null || fields[key] === undefined) {
+        delete fields[key];
+      }
+    });
 
     const airtableUrl =
       "https://api.airtable.com/v0/" +
@@ -111,6 +126,8 @@ const fields = {
       airtable: airtableData,
     });
   } catch (error) {
+    console.error("Approval failed:", error);
+
     return res.status(500).json({
       error: "Approval failed.",
       details: error.message,
